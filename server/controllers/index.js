@@ -4,6 +4,8 @@ const models = require('../models');
 // get the Cat model
 const { Cat } = models;
 
+const { Dog } = models;
+
 // Function to handle rendering the index page.
 const hostIndex = async (req, res) => {
   //Start with the name as unknown
@@ -283,15 +285,96 @@ const notFound = (req, res) => {
   });
 };
 
+const setDogName = async (req, res) => {
+  if(!req.body.firstname || !req.body.lastname || !req.body.breed || !req.body.age) {
+    return res.status(400).json({ error: 'firstname, lastname, breed, and age are all required' });
+  }
+
+  const dogData = {
+    name: `${req.body.firstname} ${req.body.lastname}`,
+    breed: req.body.breed,
+    age: req.body.age,
+  };
+
+  const newDog = new Dog(dogData);
+
+  try {
+    await newDog.save();
+    return res.status(201).json({
+      name: newDog.name,
+      breed: newDog.breed,
+      age: newDog.age
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'failed to create dog' });
+  }
+};
+
+const lookUpAndUpdateDog = async (req, res) => {
+  if(!req.body.name) {
+    return res.status(400).json({ error: 'Name is required to perform a search' });
+  }
+
+  let doc;
+  try {
+    doc = await Dog.findOneAndUpdate({name: req.body.name},
+      {$inc: {age: 1}}, {returnDocument: 'after'}).lean().exec();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+
+  if(!doc) {
+    return res.status(404).json({ error: 'No dogs found' });
+  }
+
+  return res.json({
+    name: doc.name,
+    breed: doc.breed,
+    age: doc.age,
+  });
+
+  // const updatePromise = Dog.findOneAndUpdate({name: req.body.name},
+  //   {$inc: {age: 1}}, {returnDocument: 'after'}).lean().exec();
+
+  // updatePromise.then((doc) => {
+  //   return res.json({
+  //     name: doc.name,
+  //     breed: doc.breed,
+  //     age: doc.age,
+  //   });
+  // });
+
+  // updatePromise.catch(err => {
+  //   console.log(err);
+  //   return res.status(500).json({ error: 'Something went wrong' });
+  // })
+};
+
+const hostPage4 = async (req, res) => {
+  try {
+    const docs = await Dog.find({}).lean().exec();
+
+    return res.render('page4', { dogs: docs });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'failed to find dogs' });
+  }
+};
+
 // export the relevant public controller functions
 module.exports = {
   index: hostIndex,
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   getName,
   setName,
   updateLast,
   searchName,
+  setDogName,
+  lookUpAndUpdateDog,
   notFound,
 };
