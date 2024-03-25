@@ -285,6 +285,8 @@ const notFound = (req, res) => {
   });
 };
 
+// Function that creates a dog of the passed name, breed, and age
+// If any of those are missing, returns a 400 status and indicates that
 const setDogName = async (req, res) => {
   if(!req.body.firstname || !req.body.lastname || !req.body.breed || !req.body.age) {
     return res.status(400).json({ error: 'firstname, lastname, breed, and age are all required' });
@@ -311,6 +313,9 @@ const setDogName = async (req, res) => {
   }
 };
 
+// Function that looks for a dog with the passed name:
+// If one doesn't exist, indicates none were found
+// If one does exist, increments it's age by 1 and returns a json with it's data
 const lookUpAndUpdateDog = async (req, res) => {
   if(!req.body.name) {
     return res.status(400).json({ error: 'Name is required to perform a search' });
@@ -334,24 +339,10 @@ const lookUpAndUpdateDog = async (req, res) => {
     breed: doc.breed,
     age: doc.age,
   });
-
-  // const updatePromise = Dog.findOneAndUpdate({name: req.body.name},
-  //   {$inc: {age: 1}}, {returnDocument: 'after'}).lean().exec();
-
-  // updatePromise.then((doc) => {
-  //   return res.json({
-  //     name: doc.name,
-  //     breed: doc.breed,
-  //     age: doc.age,
-  //   });
-  // });
-
-  // updatePromise.catch(err => {
-  //   console.log(err);
-  //   return res.status(500).json({ error: 'Something went wrong' });
-  // })
 };
 
+// Function that hosts page4
+// Sends dogs to be looped through
 const hostPage4 = async (req, res) => {
   try {
     const docs = await Dog.find({}).lean().exec();
